@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finanzly | Dashboard Financiero Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <aside class="sidebar">
+        <div class="logo">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Finanzly</span>
+        </div>
+        <nav style="flex: 1;">
+            <ul class="nav-links">
+                <li><a href="#" class="nav-item active"><i data-lucide="bar-chart-3"></i> <span>Dashboard</span></a>
+                </li>
+                <li><a href="#" class="nav-item"><i data-lucide="database"></i> <span>Movimientos</span></a></li>
+                <li><a href="#" class="nav-item"><i data-lucide="settings"></i> <span>Ajustes</span></a></li>
+            </ul>
+        </nav>
+
+        <div style="margin-top: auto;">
+            <div class="file-upload">
+                <label for="csv-upload" class="file-label">
+                    <i data-lucide="upload-cloud"></i>
+                    <span>Cargar CSV</span>
+                </label>
+                <input type="file" id="csv-upload" accept=".csv">
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1 style="font-size: 1.5rem; font-weight: 700;">Visión General</h1>
+                <p style="color: var(--text-secondary); font-size: 0.875rem;">Análisis financiero en tiempo real</p>
+            </div>
+            <div id="last-update" style="font-size: 0.75rem; color: var(--text-secondary);">
+                Hoy: <span id="current-date">--</span>
+            </div>
+        </header>
+
+        <!-- Main Metrics -->
+        <div class="dashboard-grid">
+            <div class="card metric-card income">
+                <h3>Ingresos Totales</h3>
+                <div class="metric-value" id="total-income">€0,00</div>
+                <div class="metric-change" style="color: var(--accent-green);">
+                    <i data-lucide="trending-up" style="width: 14px;"></i>
+                    <span>Actualizado</span>
+                </div>
+            </div>
+            <div class="card metric-card expense">
+                <h3>Gastos Totales</h3>
+                <div class="metric-value" id="total-expenses">€0,00</div>
+                <div class="metric-change" style="color: var(--accent-red);">
+                    <i data-lucide="trending-down" style="width: 14px;"></i>
+                    <span>Actualizado</span>
+                </div>
+            </div>
+            <div class="card metric-card profit">
+                <h3>Beneficio Neto</h3>
+                <div class="metric-value" id="net-profit">€0,00</div>
+                <div class="metric-change" style="color: var(--accent-blue);">
+                    <i data-lucide="activity" style="width: 14px;"></i>
+                    <span>Neto</span>
+                </div>
+            </div>
+            <div class="card metric-card margin">
+                <h3>Margen de Beneficio</h3>
+                <div class="metric-value" id="profit-margin">0%</div>
+                <div class="metric-change" style="color: var(--accent-orange);">
+                    <i data-lucide="percent" style="width: 14px;"></i>
+                    <span>Rendimiento</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="layout-grid">
+            <!-- Main Chart Card -->
+            <div class="card fade-in">
+                <div class="section-title">
+                    <i data-lucide="line-chart"></i>
+                    Tendencia Mensual
+                </div>
+                <div style="height: 350px;">
+                    <canvas id="mainChart"></canvas>
+                </div>
+            </div>
+
+            <!-- AI Insights Card -->
+            <div class="card fade-in">
+                <div class="section-title">
+                    <i data-lucide="sparkles"></i>
+                    AI Insights
+                </div>
+                <div class="insights-list" id="ai-insights">
+                    <div class="insight-item">
+                        <i data-lucide="info" style="color: var(--accent-blue);"></i>
+                        <div class="insight-content">
+                            <h4>Carga datos para empezar</h4>
+                            <p>Sube un archivo CSV con tus movimientos.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layout-grid">
+            <!-- Scenario Simulator -->
+            <div class="card fade-in">
+                <div class="section-title">
+                    <i data-lucide="beaker"></i>
+                    Simulador de Escenarios
+                </div>
+                <div class="simulator-container">
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span>Aumento de Ingresos (%)</span>
+                            <span id="income-sim-val">+0%</span>
+                        </div>
+                        <input type="range" id="income-slider" min="0" max="100" value="0">
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span>Reducción de Gastos (%)</span>
+                            <span id="expense-sim-val">0%</span>
+                        </div>
+                        <input type="range" id="expense-slider" min="0" max="100" value="0">
+                    </div>
+                    <div class="projection-box">
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                            BENEFICIO PROYECTADO
+                        </div>
+                        <div class="projection-value" id="projected-profit">€0,00</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Donut -->
+            <div class="card fade-in">
+                <div class="section-title">
+                    <i data-lucide="pie-chart"></i>
+                    Gasto por Categoría
+                </div>
+                <div style="height: 250px;">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="card fade-in">
+            <div class="section-title" style="justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="list"></i>
+                    Detalle de Movimientos
+                </div>
+                <select id="category-filter"
+                    style="background: var(--bg-card); color: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0.25rem 0.5rem;">
+                    <option value="all">Todas las categorías</option>
+                </select>
+            </div>
+            <div class="table-container">
+                <table id="transactions-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Tipo</th>
+                            <th>Categoría</th>
+                            <th>Cantidad</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be injected here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="main.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        document.getElementById('current-date').textContent = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+    </script>
+</body>
+
+</html>
