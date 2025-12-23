@@ -1,203 +1,281 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finanzly | Dashboard Financiero Pro</title>
+    <title>Dashboard Financiero</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body>
+    <!-- Sidebar -->
     <aside class="sidebar">
         <div class="logo">
-            <i data-lucide="layout-dashboard"></i>
-            <span>Finanzly</span>
+            <h2>💰 Finanzly</h2>
         </div>
-        <nav style="flex: 1;">
+        <nav>
             <ul class="nav-links">
-                <li><a href="#" class="nav-item active"><i data-lucide="bar-chart-3"></i> <span>Dashboard</span></a>
-                </li>
-                <li><a href="#" class="nav-item"><i data-lucide="database"></i> <span>Movimientos</span></a></li>
-                <li><a href="#" class="nav-item"><i data-lucide="settings"></i> <span>Ajustes</span></a></li>
+                <li><a href="#" class="nav-item active" data-screen="inicio">Inicio</a></li>
+                <li><a href="#" class="nav-item" data-screen="cambios">Cambios del mes</a></li>
+                <li><a href="#" class="nav-item" data-screen="palancas">Qué hacer</a></li>
+                <li><a href="#" class="nav-item" data-screen="caja">Caja & Riesgo</a></li>
+                <li><a href="#" class="nav-item" data-screen="gastos">Gastos</a></li>
+                <li><a href="#" class="nav-item" data-screen="simulador">Simulador</a></li>
+                <li><a href="#" class="nav-item" data-screen="forecast">Forecast</a></li>
+                <li><a href="#" class="nav-item" data-screen="movimientos">Movimientos</a></li>
             </ul>
         </nav>
-
-        <div style="margin-top: auto;">
-            <div class="file-upload">
-                <label for="csv-upload" class="file-label">
-                    <i data-lucide="upload-cloud"></i>
-                    <span>Cargar CSV</span>
-                </label>
-                <input type="file" id="csv-upload" accept=".csv">
-            </div>
-        </div>
     </aside>
 
+    <!-- Main Content -->
     <main class="main-content">
-        <header style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h1 style="font-size: 1.5rem; font-weight: 700;">Visión General</h1>
-                <p style="color: var(--text-secondary); font-size: 0.875rem;">Análisis financiero en tiempo real</p>
-            </div>
-            <div id="last-update" style="font-size: 0.75rem; color: var(--text-secondary);">
-                Hoy: <span id="current-date">--</span>
-            </div>
-        </header>
+        <!-- File Upload Section -->
+        <div class="upload-section">
+            <label for="csv-upload" class="file-label">
+                📂 Cargar CSV
+                <input type="file" id="csv-upload" accept=".csv" style="display: none;">
+            </label>
+        </div>
 
-        <!-- Main Metrics -->
-        <div class="dashboard-grid">
-            <div class="card metric-card income">
-                <h3>Ingresos Totales</h3>
-                <div class="metric-value" id="total-income">€0,00</div>
-                <div class="metric-change" style="color: var(--accent-green);">
-                    <i data-lucide="trending-up" style="width: 14px;"></i>
-                    <span>Actualizado</span>
+        <!-- Screen 1: Inicio - Estado del Negocio -->
+        <div class="screen active" id="screen-inicio">
+            <h1>Estado del negocio hoy</h1>
+            
+            <div class="kpi-grid">
+                <div class="card-kpi">
+                    <div class="title">Ingresos totales</div>
+                    <div class="subtitle">Lo que has vendido este mes</div>
+                    <div class="value" id="kpi-ingresos">0 €</div>
+                    <div class="change" id="kpi-ingresos-change"></div>
+                </div>
+                <div class="card-kpi">
+                    <div class="title">Gastos totales</div>
+                    <div class="subtitle">Lo que has gastado este mes</div>
+                    <div class="value" id="kpi-gastos">0 €</div>
+                    <div class="change" id="kpi-gastos-change"></div>
+                </div>
+                <div class="card-kpi">
+                    <div class="title">Beneficio neto</div>
+                    <div class="subtitle">Lo que te queda limpio</div>
+                    <div class="value" id="kpi-beneficio">0 €</div>
+                    <div class="change" id="kpi-beneficio-change"></div>
+                </div>
+                <div class="card-kpi">
+                    <div class="title">Margen de beneficio</div>
+                    <div class="subtitle">De cada 100 €, te quedas X €</div>
+                    <div class="value" id="kpi-margen">0%</div>
                 </div>
             </div>
-            <div class="card metric-card expense">
-                <h3>Gastos Totales</h3>
-                <div class="metric-value" id="total-expenses">€0,00</div>
-                <div class="metric-change" style="color: var(--accent-red);">
-                    <i data-lucide="trending-down" style="width: 14px;"></i>
-                    <span>Actualizado</span>
+
+            <div class="semaforo-section">
+                <div class="kpi-status" id="estado-general">
+                    <span class="status-icon">🟢</span>
+                    <span class="status-text">Estado general del negocio</span>
                 </div>
             </div>
-            <div class="card metric-card profit">
-                <h3>Beneficio Neto</h3>
-                <div class="metric-value" id="net-profit">€0,00</div>
-                <div class="metric-change" style="color: var(--accent-blue);">
-                    <i data-lucide="activity" style="width: 14px;"></i>
-                    <span>Neto</span>
+
+            <div class="alert-box" id="conclusion-rapida">
+                <h3>Resumen rápido</h3>
+                <p id="conclusion-texto">Carga un archivo CSV para ver el análisis</p>
+            </div>
+        </div>
+
+        <!-- Screen 2: Cambios del Mes -->
+        <div class="screen" id="screen-cambios">
+            <h1>Qué ha cambiado este mes</h1>
+            
+            <div class="list-block" id="cambios-list">
+                <div class="list-item">
+                    <span>Carga datos para ver cambios</span>
                 </div>
             </div>
-            <div class="card metric-card margin">
-                <h3>Margen de Beneficio</h3>
-                <div class="metric-value" id="profit-margin">0%</div>
-                <div class="metric-change" style="color: var(--accent-orange);">
-                    <i data-lucide="percent" style="width: 14px;"></i>
-                    <span>Rendimiento</span>
+
+            <div class="insight-block">
+                <p>Estos cambios explican casi todo el resultado de este mes.</p>
+            </div>
+        </div>
+
+        <!-- Screen 3: Palancas -->
+        <div class="screen" id="screen-palancas">
+            <h1>Qué puedes hacer ahora</h1>
+            
+            <div class="palancas-grid" id="palancas-container">
+                <div class="palanca-card">
+                    <h3>Reducir gasto en Marketing</h3>
+                    <p class="impacto">Impacto: <strong>Alto</strong></p>
+                    <p class="esfuerzo">Esfuerzo: <strong>Bajo</strong></p>
+                    <button class="cta-button">Elegir esta acción</button>
+                </div>
+            </div>
+
+            <div class="recomendacion-block" id="recomendacion-palanca">
+                <p>Recomendación: empieza por la acción con más impacto y menos esfuerzo.</p>
+            </div>
+        </div>
+
+        <!-- Screen 4: Caja & Riesgo -->
+        <div class="screen" id="screen-caja">
+            <h1>Caja y supervivencia</h1>
+            
+            <div class="kpi-grid">
+                <div class="card-kpi">
+                    <div class="title">Caja actual</div>
+                    <div class="subtitle">Dinero disponible ahora mismo</div>
+                    <div class="value" id="caja-actual">0 €</div>
+                </div>
+                <div class="card-kpi">
+                    <div class="title">Flujo últimos 30 días</div>
+                    <div class="subtitle">Si entra más dinero del que sale</div>
+                    <div class="value" id="flujo-30">0 €</div>
+                </div>
+                <div class="card-kpi">
+                    <div class="title">Runway</div>
+                    <div class="subtitle">Meses que puedes aguantar así</div>
+                    <div class="value" id="runway">0 meses</div>
+                </div>
+            </div>
+
+            <div class="alerta-caja" id="alerta-caja">
+                <div class="kpi-status">
+                    <span class="status-icon">🟢</span>
+                    <span class="status-text">Tienes margen</span>
+                </div>
+                <p id="texto-runway">A este ritmo tienes X meses antes de tener problemas.</p>
+            </div>
+        </div>
+
+        <!-- Screen 5: Gastos -->
+        <div class="screen" id="screen-gastos">
+            <h1>En qué se va el dinero</h1>
+            
+            <div class="gastos-layout">
+                <div class="gastos-ranking">
+                    <h3>Ranking de gastos</h3>
+                    <div class="list-block" id="gastos-ranking-list"></div>
+                </div>
+                <div class="gastos-visual">
+                    <canvas id="gastos-donut"></canvas>
+                </div>
+            </div>
+
+            <div class="insight-block">
+                <p id="gastos-insight">La mayor parte del gasto está concentrada en pocas categorías.</p>
+            </div>
+        </div>
+
+        <!-- Screen 6: Simulador -->
+        <div class="screen" id="screen-simulador">
+            <h1>¿Y si cambias algo?</h1>
+            
+            <div class="simulador-container">
+                <div class="slider-group">
+                    <label>Aumentar ingresos</label>
+                    <input type="range" id="sim-ingresos" min="0" max="50" value="0" class="sim-slider">
+                    <span class="slider-value" id="sim-ingresos-val">+0%</span>
+                </div>
+                
+                <div class="slider-group">
+                    <label>Reducir gastos</label>
+                    <input type="range" id="sim-gastos" min="0" max="50" value="0" class="sim-slider">
+                    <span class="slider-value" id="sim-gastos-val">-0%</span>
+                </div>
+
+                <div class="resultado-sim">
+                    <div class="resultado-item">
+                        <span>Beneficio actual:</span>
+                        <strong id="sim-beneficio-actual">0 €</strong>
+                    </div>
+                    <div class="resultado-item destacado">
+                        <span>Beneficio si haces esto:</span>
+                        <strong id="sim-beneficio-nuevo">0 €</strong>
+                    </div>
+                </div>
+
+                <div class="insight-block" id="sim-insight">
+                    <p>Esta acción tiene más impacto que la otra.</p>
                 </div>
             </div>
         </div>
 
-        <div class="layout-grid">
-            <!-- Main Chart Card -->
-            <div class="card fade-in">
-                <div class="section-title">
-                    <i data-lucide="line-chart"></i>
-                    Tendencia Mensual
-                </div>
-                <div style="height: 350px;">
-                    <canvas id="mainChart"></canvas>
-                </div>
+        <!-- Screen 7: Forecast -->
+        <div class="screen" id="screen-forecast">
+            <h1>Qué puede pasar en los próximos meses</h1>
+            
+            <div class="forecast-table-container">
+                <table class="forecast-table" id="forecast-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Base<br><small>Si sigues igual</small></th>
+                            <th>Conservador<br><small>Si va un poco peor</small></th>
+                            <th>Agresivo<br><small>Si haces cambios</small></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Ingresos</td>
+                            <td id="fc-ing-base">-</td>
+                            <td id="fc-ing-con">-</td>
+                            <td id="fc-ing-agr">-</td>
+                        </tr>
+                        <tr>
+                            <td>Gastos</td>
+                            <td id="fc-gas-base">-</td>
+                            <td id="fc-gas-con">-</td>
+                            <td id="fc-gas-agr">-</td>
+                        </tr>
+                        <tr>
+                            <td>Beneficio</td>
+                            <td id="fc-ben-base">-</td>
+                            <td id="fc-ben-con">-</td>
+                            <td id="fc-ben-agr">-</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
 
-            <!-- AI Insights Card -->
-            <div class="card fade-in">
-                <div class="section-title">
-                    <i data-lucide="sparkles"></i>
-                    AI Insights
-                </div>
-                <div class="insights-list" id="ai-insights">
-                    <div class="insight-item">
-                        <i data-lucide="info" style="color: var(--accent-blue);"></i>
-                        <div class="insight-content">
-                            <h4>Carga datos para empezar</h4>
-                            <p>Sube un archivo CSV con tus movimientos.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="layout-grid">
-            <!-- Scenario Simulator -->
-            <div class="card fade-in">
-                <div class="section-title">
-                    <i data-lucide="beaker"></i>
-                    Simulador de Escenarios
-                </div>
-                <div class="simulator-container">
-                    <div class="slider-group">
-                        <div class="slider-header">
-                            <span>Aumento de Ingresos (%)</span>
-                            <span id="income-sim-val">+0%</span>
-                        </div>
-                        <input type="range" id="income-slider" min="0" max="100" value="0">
-                    </div>
-                    <div class="slider-group">
-                        <div class="slider-header">
-                            <span>Reducción de Gastos (%)</span>
-                            <span id="expense-sim-val">0%</span>
-                        </div>
-                        <input type="range" id="expense-slider" min="0" max="100" value="0">
-                    </div>
-                    <div class="projection-box">
-                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
-                            BENEFICIO PROYECTADO
-                        </div>
-                        <div class="projection-value" id="projected-profit">€0,00</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Category Donut -->
-            <div class="card fade-in">
-                <div class="section-title">
-                    <i data-lucide="pie-chart"></i>
-                    Gasto por Categoría
-                </div>
-                <div style="height: 250px;">
-                    <canvas id="categoryChart"></canvas>
-                </div>
+            <div class="insight-block">
+                <p><strong>Si no haces nada → escenario base</strong></p>
+                <p>Si actúas → mejora el resultado</p>
             </div>
         </div>
 
-        <!-- Transactions Table -->
-        <div class="card fade-in">
-            <div class="section-title" style="justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <i data-lucide="list"></i>
-                    Detalle de Movimientos
-                </div>
-                <select id="category-filter"
-                    style="background: var(--bg-card); color: white; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0.25rem 0.5rem;">
+        <!-- Screen 8: Movimientos -->
+        <div class="screen" id="screen-movimientos">
+            <h1>Detalle de movimientos</h1>
+            <p class="subtitle">Aquí puedes ver de dónde sale cada número.</p>
+            
+            <div class="filters-section">
+                <select id="filter-mes" class="filter-select">
+                    <option value="all">Todos los meses</option>
+                </select>
+                <select id="filter-tipo" class="filter-select">
+                    <option value="all">Todos los tipos</option>
+                    <option value="Ingreso">Ingresos</option>
+                    <option value="Gasto">Gastos</option>
+                </select>
+                <select id="filter-categoria" class="filter-select">
                     <option value="all">Todas las categorías</option>
                 </select>
             </div>
+
             <div class="table-container">
-                <table id="transactions-table">
+                <table class="movements-table" id="movimientos-table">
                     <thead>
                         <tr>
                             <th>Fecha</th>
                             <th>Tipo</th>
                             <th>Categoría</th>
+                            <th>Concepto</th>
                             <th>Cantidad</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <!-- Data will be injected here -->
-                    </tbody>
+                    <tbody></tbody>
                 </table>
             </div>
         </div>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="main.js"></script>
-    <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
-        document.getElementById('current-date').textContent = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
-    </script>
 </body>
-
 </html>
