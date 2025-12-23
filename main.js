@@ -352,7 +352,7 @@ const chartOptions = {
 };
 
 // Navigation between screens - Execute when page fully loads
-window.addEventListener('load', () => {document.querySelectorAll('.nav-item').forEach(item => {
+document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', (e) => {
         e.preventDefault();
         const screen = e.target.getAttribute('data-screen');
@@ -367,5 +367,4 @@ window.addEventListener('load', () => {document.querySelectorAll('.nav-item').fo
         // Show selected screen
         document.getElementById('screen-' + screen).classList.add('active');
     });
-});
 });
