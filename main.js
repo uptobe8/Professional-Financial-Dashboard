@@ -1,11 +1,15 @@
-// State Management
+// ==============================
+// STATE MANAGEMENT
+// ==============================
 let transactions = [];
 let charts = {
     main: null,
     category: null
 };
 
-// DOM Elements
+// ==============================
+// DOM ELEMENTS (con seguridad)
+// ==============================
 const csvInput = document.getElementById('csv-upload');
 const totalIncomeEl = document.getElementById('total-income');
 const totalExpensesEl = document.getElementById('total-expenses');
@@ -20,7 +24,9 @@ const incomeSimVal = document.getElementById('income-sim-val');
 const expenseSimVal = document.getElementById('expense-sim-val');
 const projectedProfitEl = document.getElementById('projected-profit');
 
-// Initialize App
+// ==============================
+// INIT APP
+// ==============================
 document.addEventListener('DOMContentLoaded', () => {
     const savedData = localStorage.getItem('finanzly_data');
     if (savedData) {
@@ -28,72 +34,102 @@ document.addEventListener('DOMContentLoaded', () => {
             transactions = JSON.parse(savedData);
             updateDashboard();
         } catch (e) {
-            console.error("Error parsing saved data", e);
+            console.error('Error parsing saved data', e);
+            localStorage.removeItem('finanzly_data');
         }
     }
 });
 
-// CSV Import Logic
+// ==============================
+// CSV IMPORT
+// ==============================
 csvInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
-        const text = event.target.result;
-        processCSV(text);
-    };
-    reader.readAsText(file);
+    reader.onload = (event) => processCSV(event.target.result);
+    reader.readAsText(file, 'UTF-8');
 });
+
+function normalizeHeader(text) {
+    return text
+        .trim()
+        .replace(/["]+/g, '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+}
 
 function processCSV(csvText) {
     try {
-        const lines = csvText.trim().split('\n');
-        if (lines.length < 2) return;
-
-        const headers = lines[0].toLowerCase().split(',').map(h => h.trim().replace(/["]+/g, ''));
-
-        // Column Index Mapping
-        const idx = {
-            fecha: headers.findIndex(h => h.includes('fecha')),
-            tipo: headers.findIndex(h => h.includes('tipo')),
-            categoria: headers.findIndex(h => h.includes('categoría') || h.includes('categoria')),
-            cantidad: headers.findIndex(h => h.includes('cantidad'))
-        };
-
-        if (idx.fecha === -1 || idx.tipo === -1 || idx.categoria === -1 || idx.cantidad === -1) {
-            alert("El CSV debe tener las columnas: Fecha, Tipo, Categoría, Cantidad");
+        const lines = csvText.trim().split(/\r?\n/);
+        if (lines.length < 2) {
+            alert('El CSV no contiene datos.');
             return;
         }
 
-        transactions = lines.slice(1).map(line => {
-            const values = line.split(',').map(v => v.trim().replace(/["]+/g, ''));
-            return {
+        const rawHeaders = lines[0].split(',');
+        const headers = rawHeaders.map(normalizeHeader);
+
+        const idx = {
+            fecha: headers.findIndex(h => h === 'fecha'),
+            tipo: headers.findIndex(h => h === 'tipo'),
+            categoria: headers.findIndex(h => h === 'categoria'),
+            cantidad: headers.findIndex(h => h === 'cantidad' || h === 'monto')
+        };
+
+        if (Object.values(idx).some(v => v === -1)) {
+            console.error('Headers detectados:', headers);
+            alert(
+                'CSV inválido.\n' +
+                'Debe contener al menos las columnas:\n' +
+                'Fecha, Tipo, Categoría, Cantidad'
+            );
+            return;
+        }
+
+        const parsed = [];
+
+        for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',').map(v => v.replace(/["]+/g, '').trim());
+            if (values.length < headers.length) continue;
+
+            const cantidad = parseFloat(values[idx.cantidad].replace(',', '.')) || 0;
+
+            parsed.push({
                 fecha: values[idx.fecha],
                 tipo: values[idx.tipo],
                 categoria: values[idx.categoria],
-                cantidad: parseFloat(values[idx.cantidad]) || 0
-            };
-        }).filter(t => t.fecha && t.tipo && t.categoria);
+                cantidad
+            });
+        }
 
+        transactions = parsed.filter(t => t.fecha && t.tipo && t.categoria);
         localStorage.setItem('finanzly_data', JSON.stringify(transactions));
         updateDashboard();
+
     } catch (err) {
-        console.error("Error processing CSV", err);
-        alert("Error al procesar el archivo CSV.");
+        console.error('Error processing CSV', err);
+        alert('Error al procesar el archivo CSV.');
     }
 }
 
-// Analytics Logic
+// ==============================
+// DASHBOARD UPDATE
+// ==============================
 function updateDashboard() {
     calculateMetrics();
     renderAIInsights();
     renderCharts();
     renderTable();
-    updateSimulator();
     populateFilters();
+    updateSimulator();
 }
 
+// ==============================
+// METRICS
+// ==============================
 function calculateMetrics() {
     const income = transactions
         .filter(t => t.tipo.toLowerCase().includes('ingreso'))
@@ -112,66 +148,36 @@ function calculateMetrics() {
     profitMarginEl.textContent = `${margin.toFixed(1)}%`;
 }
 
+// ==============================
+// AI INSIGHTS
+// ==============================
 function renderAIInsights() {
-    if (transactions.length === 0) return;
+    if (!transactions.length) {
+        aiInsightsEl.innerHTML = '<p>No hay datos suficientes.</p>';
+        return;
+    }
 
     const insights = [];
-
-    // Monthly Data
     const monthlyData = getMonthlyData();
     const months = Object.keys(monthlyData);
 
-    if (months.length > 0) {
-        // Best Month
+    if (months.length) {
         const bestMonth = months.reduce((a, b) =>
-            (monthlyData[a].income - monthlyData[a].expenses) > (monthlyData[b].income - monthlyData[b].expenses) ? a : b
+            (monthlyData[a].income - monthlyData[a].expenses) >
+            (monthlyData[b].income - monthlyData[b].expenses) ? a : b
         );
+
         insights.push({
-            title: "Mejor Mes",
-            desc: `Tu mejor mes fue ${bestMonth} con un beneficio de ${formatCurrency(monthlyData[bestMonth].income - monthlyData[bestMonth].expenses)}`,
+            title: 'Mejor Mes',
+            desc: `Mejor resultado en ${bestMonth}`,
             icon: 'award'
-        });
-
-        // Most Profitable Category
-        const categoryStats = {};
-        transactions.forEach(t => {
-            if (t.tipo.toLowerCase().includes('ingreso')) {
-                categoryStats[t.categoria] = (categoryStats[t.categoria] || 0) + t.cantidad;
-            }
-        });
-        const catKeys = Object.keys(categoryStats);
-        if (catKeys.length > 0) {
-            const bestCat = catKeys.reduce((a, b) => categoryStats[a] > categoryStats[b] ? a : b);
-            insights.push({
-                title: "Categoría Estrella",
-                desc: `La categoría con más ingresos es ${bestCat}`,
-                icon: 'gem'
-            });
-        }
-
-        // Ratio Gasto/Ingreso
-        const totalInc = transactions.filter(t => t.tipo.toLowerCase().includes('ingreso')).reduce((a, b) => a + b.cantidad, 0);
-        const totalExp = transactions.filter(t => t.tipo.toLowerCase().includes('gasto')).reduce((a, b) => a + b.cantidad, 0);
-        const ratio = totalInc > 0 ? (totalExp / totalInc * 100).toFixed(1) : 0;
-        insights.push({
-            title: "Ratio Gasto/Ingreso",
-            desc: `Tus gastos representan el ${ratio}% de tus ingresos.`,
-            icon: 'pie-chart'
-        });
-
-        // ROI
-        const roi = totalExp > 0 ? (totalInc / totalExp).toFixed(2) : 0;
-        insights.push({
-            title: "Retorno de Inversión",
-            desc: `Por cada 1€ que gastas, generas ${roi}€.`,
-            icon: 'trending-up'
         });
     }
 
     aiInsightsEl.innerHTML = insights.map(i => `
         <div class="insight-item fade-in">
-            <i data-lucide="${i.icon}" style="color: var(--accent-blue);"></i>
-            <div class="insight-content">
+            <i data-lucide="${i.icon}"></i>
+            <div>
                 <h4>${i.title}</h4>
                 <p>${i.desc}</p>
             </div>
@@ -181,6 +187,9 @@ function renderAIInsights() {
     lucide.createIcons();
 }
 
+// ==============================
+// TABLE
+// ==============================
 function renderTable(filter = 'all') {
     const filtered = filter === 'all'
         ? transactions
@@ -189,182 +198,107 @@ function renderTable(filter = 'all') {
     tableBody.innerHTML = filtered.map(t => `
         <tr>
             <td>${t.fecha}</td>
-            <td><span class="badge ${t.tipo.toLowerCase().includes('ingreso') ? 'badge-income' : 'badge-expense'}">${t.tipo}</span></td>
+            <td>${t.tipo}</td>
             <td>${t.categoria}</td>
-            <td style="color: ${t.tipo.toLowerCase().includes('ingreso') ? 'var(--accent-green)' : 'var(--accent-red)'}">
-                ${t.tipo.toLowerCase().includes('ingreso') ? '+' : '-'}${formatCurrency(t.cantidad)}
-            </td>
+            <td>${formatCurrency(t.cantidad)}</td>
         </tr>
     `).join('');
 }
 
 function populateFilters() {
     const categories = [...new Set(transactions.map(t => t.categoria))];
-    categoryFilter.innerHTML = '<option value="all">Todas las categorías</option>' +
+    categoryFilter.innerHTML =
+        '<option value="all">Todas</option>' +
         categories.map(c => `<option value="${c}">${c}</option>`).join('');
 }
 
-categoryFilter.addEventListener('change', (e) => renderTable(e.target.value));
+categoryFilter.addEventListener('change', e => renderTable(e.target.value));
 
-// Simulation Logic
+// ==============================
+// SIMULATOR
+// ==============================
 [incomeSlider, expenseSlider].forEach(slider => {
-    slider.addEventListener('input', () => {
-        incomeSimVal.textContent = `+${incomeSlider.value}%`;
-        expenseSimVal.textContent = `-${expenseSlider.value}%`;
-        updateSimulator();
-    });
+    slider.addEventListener('input', updateSimulator);
 });
 
 function updateSimulator() {
-    const income = transactions.filter(t => t.tipo.toLowerCase().includes('ingreso')).reduce((a, b) => a + b.cantidad, 0);
-    const expenses = transactions.filter(t => t.tipo.toLowerCase().includes('gasto')).reduce((a, b) => a + b.cantidad, 0);
+    const income = transactions.filter(t => t.tipo.toLowerCase().includes('ingreso'))
+        .reduce((a, b) => a + b.cantidad, 0);
 
-    const simulatedIncome = income * (1 + (incomeSlider.value / 100));
-    const simulatedExpenses = expenses * (1 - (expenseSlider.value / 100));
-    const simulatedProfit = simulatedIncome - simulatedExpenses;
+    const expenses = transactions.filter(t => t.tipo.toLowerCase().includes('gasto'))
+        .reduce((a, b) => a + b.cantidad, 0);
 
-    projectedProfitEl.textContent = formatCurrency(simulatedProfit);
+    const simulated =
+        income * (1 + incomeSlider.value / 100) -
+        expenses * (1 - expenseSlider.value / 100);
+
+    incomeSimVal.textContent = `+${incomeSlider.value}%`;
+    expenseSimVal.textContent = `-${expenseSlider.value}%`;
+    projectedProfitEl.textContent = formatCurrency(simulated);
 }
 
-// Charts Logic
+// ==============================
+// CHARTS
+// ==============================
 function renderCharts() {
-    const monthlyData = getMonthlyData();
-    const sortedMonths = Object.keys(monthlyData).sort((a, b) => {
-        const [ma, ya] = a.split(' ');
-        const [mb, yb] = b.split(' ');
-        return new Date(`${ma} 1, 20${ya}`) - new Date(`${mb} 1, 20${yb}`);
-    });
+    if (!transactions.length) return;
 
-    const labels = sortedMonths;
+    const monthlyData = getMonthlyData();
+    const labels = Object.keys(monthlyData);
     const incomes = labels.map(l => monthlyData[l].income);
     const expenses = labels.map(l => monthlyData[l].expenses);
-    const profits = labels.map(l => monthlyData[l].income - monthlyData[l].expenses);
 
-    // Main Chart
-    const ctx = document.getElementById('mainChart').getContext('2d');
     if (charts.main) charts.main.destroy();
-    charts.main = new Chart(ctx, {
+
+    charts.main = new Chart(document.getElementById('mainChart'), {
         type: 'line',
         data: {
             labels,
             datasets: [
-                {
-                    label: 'Ingresos',
-                    data: incomes,
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    fill: true,
-                    tension: 0.4
-                },
-                {
-                    label: 'Gastos',
-                    data: expenses,
-                    borderColor: '#ef4444',
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                    fill: true,
-                    tension: 0.4
-                },
-                {
-                    label: 'Beneficio',
-                    data: profits,
-                    borderColor: '#3b82f6',
-                    borderDash: [5, 5],
-                    tension: 0.4
-                }
+                { label: 'Ingresos', data: incomes },
+                { label: 'Gastos', data: expenses }
             ]
-        },
-        options: chartOptions
-    });
-
-    // Category Chart
-    const cats = {};
-    transactions.filter(t => t.tipo.toLowerCase().includes('gasto')).forEach(t => {
-        cats[t.categoria] = (cats[t.categoria] || 0) + t.cantidad;
-    });
-
-    const ctx2 = document.getElementById('categoryChart').getContext('2d');
-    if (charts.category) charts.category.destroy();
-    charts.category = new Chart(ctx2, {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(cats),
-            datasets: [{
-                data: Object.values(cats),
-                backgroundColor: [
-                    '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
-                ],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { color: '#94a3b8', font: { size: 10 } }
-                }
-            }
         }
     });
 }
 
+// ==============================
+// HELPERS
+// ==============================
 function getMonthlyData() {
-    const monthly = {};
+    const data = {};
     transactions.forEach(t => {
-        const date = new Date(t.fecha);
-        if (isNaN(date)) return;
-
-        const monthKey = date.toLocaleString('es-ES', { month: 'short', year: '2-digit' });
-
-        if (!monthly[monthKey]) {
-            monthly[monthKey] = { income: 0, expenses: 0 };
-        }
-
-        if (t.tipo.toLowerCase().includes('ingreso')) monthly[monthKey].income += t.cantidad;
-        else monthly[monthKey].expenses += t.cantidad;
+        const d = new Date(t.fecha);
+        if (isNaN(d)) return;
+        const key = d.toLocaleString('es-ES', { month: 'short', year: '2-digit' });
+        if (!data[key]) data[key] = { income: 0, expenses: 0 };
+        if (t.tipo.toLowerCase().includes('ingreso')) data[key].income += t.cantidad;
+        else data[key].expenses += t.cantidad;
     });
-    return monthly;
+    return data;
 }
 
 function formatCurrency(val) {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(val);
+    return new Intl.NumberFormat('es-ES', {
+        style: 'currency',
+        currency: 'EUR'
+    }).format(val);
 }
 
-const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-        y: {
-            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-            ticks: { color: '#94a3b8' }
-        },
-        x: {
-            grid: { display: false },
-            ticks: { color: '#94a3b8' }
-        }
-    },
-    plugins: {
-        legend: {
-            labels: { color: '#94a3b8' }
-        }
-    }
-};
-
-// Navigation between screens - Execute when page fully loads
+// ==============================
+// NAVIGATION (FUNCIONA)
+// ==============================
 document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', (e) => {
+    item.addEventListener('click', e => {
         e.preventDefault();
-        const screen = e.target.getAttribute('data-screen');
-        
-        // Remove active from all nav items
-        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-        // Add active to clicked nav item
-        e.target.classList.add('active');
-        
-        // Hide all screens
-        document.querySelectorAll('.screen').forEach(scr => scr.classList.remove('active'));
-        // Show selected screen
-        document.getElementById('screen-' + screen).classList.add('active');
+        const screen = item.dataset.screen;
+
+        document.querySelectorAll('.nav-item')
+            .forEach(n => n.classList.remove('active'));
+        document.querySelectorAll('.screen')
+            .forEach(s => s.classList.remove('active'));
+
+        item.classList.add('active');
+        document.getElementById(`screen-${screen}`)?.classList.add('active');
     });
 });
