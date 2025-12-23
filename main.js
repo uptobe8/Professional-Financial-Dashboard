@@ -350,3 +350,21 @@ const chartOptions = {
         }
     }
 };
+
+// Navigation between screens
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const screen = e.target.getAttribute('data-screen');
+        
+        // Remove active from all nav items
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        // Add active to clicked nav item
+        e.target.classList.add('active');
+        
+        // Hide all screens
+        document.querySelectorAll('.screen').forEach(scr => scr.classList.remove('active'));
+        // Show selected screen
+        document.getElementById('screen-' + screen).classList.add('active');
+    });
+});
