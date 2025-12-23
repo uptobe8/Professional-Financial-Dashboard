@@ -1,0 +1,19 @@
+fecha,tipo,categoria,concepto,cantidad
+2024-01-05,Ingreso,Ventas,Venta producto A,1200
+2024-01-10,Ingreso,Ventas,Venta producto B,850
+2024-01-15,Gasto,Marketing,Publicidad Facebook,300
+2024-01-18,Gasto,Personal,Nóminas,2500
+2024-01-22,Ingreso,Ventas,Venta producto C,950
+2024-01-25,Gasto,Suministros,Oficina,150
+2024-02-03,Ingreso,Ventas,Venta producto A,1400
+2024-02-07,Gasto,Marketing,Google Ads,450
+2024-02-12,Ingreso,Ventas,Venta producto B,1100
+2024-02-15,Gasto,Personal,Nóminas,2500
+2024-02-20,Gasto,Suministros,Material oficina,200
+2024-02-25,Ingreso,Ventas,Venta producto D,780
+2024-03-02,Ingreso,Ventas,Venta producto A,1600
+2024-03-08,Gasto,Marketing,Campaña email,250
+2024-03-12,Ingreso,Ventas,Venta producto C,1250
+2024-03-15,Gasto,Personal,Nóminas,2500
+2024-03-20,Ingreso,Ventas,Venta producto B,990
+2024-03-25,Gasto,Servicios,Hosting y dominio,100
