@@ -36,33 +36,33 @@
             </label>
         </div>
 
-        <!-- Screen 1: Inicio - Estado del Negocio -->
+        <!-- Screen 1: Inicio -->
         <div class="screen active" id="screen-inicio">
             <h1>Estado del negocio hoy</h1>
-            
+
             <div class="kpi-grid">
                 <div class="card-kpi">
                     <div class="title">Ingresos totales</div>
                     <div class="subtitle">Lo que has vendido este mes</div>
-                    <div class="value" id="kpi-ingresos">0 €</div>
+                    <div class="value" id="total-income">0 €</div>
                     <div class="change" id="kpi-ingresos-change"></div>
                 </div>
                 <div class="card-kpi">
                     <div class="title">Gastos totales</div>
                     <div class="subtitle">Lo que has gastado este mes</div>
-                    <div class="value" id="kpi-gastos">0 €</div>
+                    <div class="value" id="total-expenses">0 €</div>
                     <div class="change" id="kpi-gastos-change"></div>
                 </div>
                 <div class="card-kpi">
                     <div class="title">Beneficio neto</div>
                     <div class="subtitle">Lo que te queda limpio</div>
-                    <div class="value" id="kpi-beneficio">0 €</div>
+                    <div class="value" id="net-profit">0 €</div>
                     <div class="change" id="kpi-beneficio-change"></div>
                 </div>
                 <div class="card-kpi">
                     <div class="title">Margen de beneficio</div>
                     <div class="subtitle">De cada 100 €, te quedas X €</div>
-                    <div class="value" id="kpi-margen">0%</div>
+                    <div class="value" id="profit-margin">0%</div>
                 </div>
             </div>
 
@@ -77,18 +77,22 @@
                 <h3>Resumen rápido</h3>
                 <p id="conclusion-texto">Carga un archivo CSV para ver el análisis</p>
             </div>
+
+            <!-- Añadido: gráficos -->
+            <div class="charts-section">
+                <canvas id="mainChart" height="200"></canvas>
+                <canvas id="categoryChart" height="200"></canvas>
+            </div>
         </div>
 
-        <!-- Screen 2: Cambios del Mes -->
+        <!-- Screen 2: Cambios -->
         <div class="screen" id="screen-cambios">
             <h1>Qué ha cambiado este mes</h1>
-            
             <div class="list-block" id="cambios-list">
                 <div class="list-item">
                     <span>Carga datos para ver cambios</span>
                 </div>
             </div>
-
             <div class="insight-block">
                 <p>Estos cambios explican casi todo el resultado de este mes.</p>
             </div>
@@ -97,7 +101,6 @@
         <!-- Screen 3: Palancas -->
         <div class="screen" id="screen-palancas">
             <h1>Qué puedes hacer ahora</h1>
-            
             <div class="palancas-grid" id="palancas-container">
                 <div class="palanca-card">
                     <h3>Reducir gasto en Marketing</h3>
@@ -106,16 +109,14 @@
                     <button class="cta-button">Elegir esta acción</button>
                 </div>
             </div>
-
             <div class="recomendacion-block" id="recomendacion-palanca">
                 <p>Recomendación: empieza por la acción con más impacto y menos esfuerzo.</p>
             </div>
         </div>
 
-        <!-- Screen 4: Caja & Riesgo -->
+        <!-- Screen 4: Caja -->
         <div class="screen" id="screen-caja">
             <h1>Caja y supervivencia</h1>
-            
             <div class="kpi-grid">
                 <div class="card-kpi">
                     <div class="title">Caja actual</div>
@@ -133,7 +134,6 @@
                     <div class="value" id="runway">0 meses</div>
                 </div>
             </div>
-
             <div class="alerta-caja" id="alerta-caja">
                 <div class="kpi-status">
                     <span class="status-icon">🟢</span>
@@ -146,7 +146,6 @@
         <!-- Screen 5: Gastos -->
         <div class="screen" id="screen-gastos">
             <h1>En qué se va el dinero</h1>
-            
             <div class="gastos-layout">
                 <div class="gastos-ranking">
                     <h3>Ranking de gastos</h3>
@@ -156,7 +155,6 @@
                     <canvas id="gastos-donut"></canvas>
                 </div>
             </div>
-
             <div class="insight-block">
                 <p id="gastos-insight">La mayor parte del gasto está concentrada en pocas categorías.</p>
             </div>
@@ -165,20 +163,17 @@
         <!-- Screen 6: Simulador -->
         <div class="screen" id="screen-simulador">
             <h1>¿Y si cambias algo?</h1>
-            
             <div class="simulador-container">
                 <div class="slider-group">
                     <label>Aumentar ingresos</label>
-                    <input type="range" id="sim-ingresos" min="0" max="50" value="0" class="sim-slider">
-                    <span class="slider-value" id="sim-ingresos-val">+0%</span>
+                    <input type="range" id="income-slider" min="0" max="50" value="0" class="sim-slider">
+                    <span class="slider-value" id="income-sim-val">+0%</span>
                 </div>
-                
                 <div class="slider-group">
                     <label>Reducir gastos</label>
-                    <input type="range" id="sim-gastos" min="0" max="50" value="0" class="sim-slider">
-                    <span class="slider-value" id="sim-gastos-val">-0%</span>
+                    <input type="range" id="expense-slider" min="0" max="50" value="0" class="sim-slider">
+                    <span class="slider-value" id="expense-sim-val">-0%</span>
                 </div>
-
                 <div class="resultado-sim">
                     <div class="resultado-item">
                         <span>Beneficio actual:</span>
@@ -186,10 +181,9 @@
                     </div>
                     <div class="resultado-item destacado">
                         <span>Beneficio si haces esto:</span>
-                        <strong id="sim-beneficio-nuevo">0 €</strong>
+                        <strong id="projected-profit">0 €</strong>
                     </div>
                 </div>
-
                 <div class="insight-block" id="sim-insight">
                     <p>Esta acción tiene más impacto que la otra.</p>
                 </div>
@@ -199,7 +193,6 @@
         <!-- Screen 7: Forecast -->
         <div class="screen" id="screen-forecast">
             <h1>Qué puede pasar en los próximos meses</h1>
-            
             <div class="forecast-table-container">
                 <table class="forecast-table" id="forecast-table">
                     <thead>
@@ -232,7 +225,6 @@
                     </tbody>
                 </table>
             </div>
-
             <div class="insight-block">
                 <p><strong>Si no haces nada → escenario base</strong></p>
                 <p>Si actúas → mejora el resultado</p>
@@ -243,7 +235,6 @@
         <div class="screen" id="screen-movimientos">
             <h1>Detalle de movimientos</h1>
             <p class="subtitle">Aquí puedes ver de dónde sale cada número.</p>
-            
             <div class="filters-section">
                 <select id="filter-mes" class="filter-select">
                     <option value="all">Todos los meses</option>
@@ -257,7 +248,6 @@
                     <option value="all">Todas las categorías</option>
                 </select>
             </div>
-
             <div class="table-container">
                 <table class="movements-table" id="movimientos-table">
                     <thead>
